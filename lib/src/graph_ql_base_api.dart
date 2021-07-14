@@ -7,7 +7,7 @@ import 'graph_ql_parser.dart';
 abstract class GraphQlBaseApi {
   GraphQLClient get client;
   GraphQLResponseParser get responseParser;
-  Logger? get log => null;
+  Logger? get baseLogger => null;
 
   Future<bool> ensureAuthCookieIsSet();
 
@@ -55,20 +55,20 @@ abstract class GraphQlBaseApi {
   }) async {
     final functionIdentity = actionName ?? query;
     if (await (ensureAuthCookieIsSet())) {
-      log?.v('REQUEST:$actionName - query:$query');
+      baseLogger?.v('REQUEST:$actionName - query:$query');
       var response = await client.query(QueryOptions(
           document: gql(query),
           fetchPolicy: FetchPolicy.networkOnly,
           cacheRereadPolicy: CacheRereadPolicy.ignoreAll));
 
-      log?.v(
+      baseLogger?.v(
           'RESPONSE:$actionName - hasData: ${response.data != null} ${logResponseData ? "data:${response.data}" : ''}');
 
       if (!response.hasException) {
         try {
           return parseData(response.data);
         } catch (e, stacktrace) {
-          log?.e('$functionIdentity failed: $e');
+          baseLogger?.e('$functionIdentity failed: $e');
 
           return Future.error(GraphQlException(
             message: e.toString(),
@@ -86,7 +86,7 @@ abstract class GraphQlBaseApi {
       }
     } else {
       var error = 'Cookies are invalid';
-      log?.e(error);
+      baseLogger?.e(error);
       return Future.error(GraphQlException(
         message: error,
         query: query,
@@ -112,16 +112,16 @@ abstract class GraphQlBaseApi {
 
       final QueryResult response = await client.mutate(options);
 
-      log?.v(
+      baseLogger?.v(
           'RESPONSE:$actionName - hasData: ${response.data != null} ${logResponseData ? "data:${response.data}" : ''}');
 
       if (!response.hasException) {
         try {
-          log?.i(response.data!);
+          baseLogger?.i(response.data!);
           final data = responseParser.parseMutationResponse(response.data!);
           return parseData(data);
         } catch (e, stackTrack) {
-          log?.e('$functionIdentity failed: $e');
+          baseLogger?.e('$functionIdentity failed: $e');
 
           return Future.error(GraphQlException(
             message: e.toString(),
@@ -150,7 +150,7 @@ abstract class GraphQlBaseApi {
       }
     } else {
       var error = 'Cookies are invalid';
-      log?.e(error);
+      baseLogger?.e(error);
       return Future.error(GraphQlException(
         message: error,
         query: mutation,
@@ -182,11 +182,11 @@ abstract class GraphQlBaseApi {
           statusCode = gqlError.extensions!['code'] ?? 0;
           extentionError = gqlError.extensions!['error'];
         }
-        log?.e(
+        baseLogger?.e(
             '$functionIdentity: StatusCode:$statusCode - $errorMessage, ${extentionError ?? ''}');
 
         finalErrorMessage = errorMessage;
-        log?.v(finalErrorMessage);
+        baseLogger?.v(finalErrorMessage);
       }
     }
 
