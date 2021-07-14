@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'graph_ql_result_type.dart';
 
 typedef StringTypeConverters = Map<Type, dynamic Function(String)>;
-typedef MapTypeConverters = Map<Type, dynamic Function(Map<String, dynamic>?)>;
+typedef MapTypeConverters = Map<Type, dynamic Function(Map<String, dynamic>)>;
 
 /// A parser that contains helper functions for turning your graphQL response into domain specific models
 class GraphQLResponseParser {
